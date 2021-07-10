@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+setup.cfg
+src/cm_forex_python/__init__.py
+src/cm_forex_python/forex.py
+src/forex_pythong_capimichi.egg-info/PKG-INFO
+src/forex_pythong_capimichi.egg-info/SOURCES.txt
+src/forex_pythong_capimichi.egg-info/dependency_links.txt
+src/forex_pythong_capimichi.egg-info/top_level.txt
