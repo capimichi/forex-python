@@ -45,16 +45,14 @@ def count_support_resistance(df, step, support_resistance=0, pip_size=0.0001, pi
         count = 0
         close = df.iloc[i].close
 
-        for index, past_row in rows.iterrows():
-            increment = False
-            for compare_column in compare_columns:
-                column_value = past_row[compare_column]
-                check_value = abs(close - column_value)
+        differences = pd.DataFrame(columns=compare_columns)
 
-                if (check_value < pip_threshold_value):
-                    increment = True
-            if (increment):
-                count += 1
-        counts.append(count)
+        for compare_column in compare_columns:
+            differences[compare_column] = rows[compare_column].apply(lambda x: abs(close - x))
 
+        differences = differences.min(axis=1)
+
+        matches = differences.apply(lambda x: 1 if (x < pip_threshold_value) else 0)
+
+        counts.append(matches.sum())
     return counts
