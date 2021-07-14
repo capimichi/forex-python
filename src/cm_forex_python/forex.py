@@ -56,3 +56,14 @@ def count_support_resistance(df, step, support_resistance=0, pip_size=0.0001, pi
 
         counts.append(matches.sum())
     return counts
+
+def calculate_macd(df, fast_period = 12, slow_period = 26, signal = 9, open_col = 'open', close_col = 'close', low_col = 'low', high_col = 'high'):
+  exp1 = df[close_col].ewm(span=fast_period, adjust=False).mean()
+  exp2 = df[close_col].ewm(span=slow_period, adjust=False).mean()
+  macd = exp1 - exp2
+  return macd
+
+def calculate_macd_signal(df, fast_period = 12, slow_period = 26, signal = 9, open_col = 'open', close_col = 'close', low_col = 'low', high_col = 'high'):
+  macd = calculate_macd(df, fast_period, slow_period, signal, open_col, close_col, low_col, high_col)
+  exp3 = macd.ewm(span=9, adjust=False).mean()
+  return exp3
