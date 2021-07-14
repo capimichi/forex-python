@@ -76,9 +76,9 @@ def check_macd_buy_sell(df, fast_period = 12, slow_period = 26, signal = 9, open
   temp_df['signal'] = signal
   def buy_func(x):
       buy_sell = 0
-      if ((x.shift(1)['macd'] < x.shift(1)['signal']) and (x.shift(0)['macd'] > x.shift(0)['signal'])):
+      if ((x['macd'].shift(1) < x['signal'].shift(1)) and (x['macd'].shift(0) > x['signal'].shift(0))):
           buy_sell = 1
-      if ((x.shift(1)['macd'] > x.shift(1)['signal']) and (x.shift(0)['macd'] < x.shift(0)['signal'])):
+      if ((x['macd'].shift(1) > x['signal'].shift(1)) and (x['macd'].shift(0) < x['signal'].shift(0))):
           buy_sell = -1
       return buy_sell
 
