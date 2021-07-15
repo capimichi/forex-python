@@ -69,17 +69,23 @@ def calculate_macd_signal(df, fast_period = 12, slow_period = 26, signal = 9, op
   return exp3
 
 def check_macd_buy_sell(df, fast_period = 12, slow_period = 26, signal = 9, open_col = 'open', close_col = 'close', low_col = 'low', high_col = 'high'):
-  macd = calculate_macd(df, fast_period, slow_period, signal, open_col, close_col, low_col, high_col)
-  signal = calculate_macd_signal(df, fast_period, slow_period, signal, open_col, close_col, low_col, high_col)
-  temp_df = pd.DataFrame(columns = ['macd', 'signal'])
-  temp_df['macd'] = macd
-  temp_df['signal'] = signal
-  def buy_func(x):
-      buy_sell = 0
-      if ((x.shift(1)['macd'] < x.shift(1)['signal']) and (x.shift(0)['macd'] > x.shift(0)['signal'])):
-          buy_sell = 1
-      if ((x.shift(1)['macd'] > x.shift(1)['signal']) and (x.shift(0)['macd'] < x.shift(0)['signal'])):
-          buy_sell = -1
-      return buy_sell
+    macd = calculate_macd(df, fast_period, slow_period, signal, open_col, close_col, low_col, high_col)
+    signal = calculate_macd_signal(df, fast_period, slow_period, signal, open_col, close_col, low_col, high_col)
 
-  return temp_df.apply(buy_func, axis = 1)
+    buy_sells = [0]
+
+    for i in range(1, len(macd)):
+        cur_macd = macd[i]
+        cur_signal = signal[i]
+
+        past_macd = macd[i - 1]
+        past_signal = signal[i - 1]
+
+        buy_sell = 0
+        if ((past_macd < past_signal) and (cur_macd > cur_signal)):
+            buy_sell = 1
+        if ((past_macd > past_signal) and (cur_macd < cur_signal)):
+            buy_sell = -1
+        buy_sells.append(buy_sell)
+
+    return buy_sells
