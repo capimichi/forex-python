@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def calculate_top_shadow(df, open_col = 'open', close_col = 'close', low_col = 'low', high_col = 'high'):
     return df.apply(lambda x : (x[high_col] - x[open_col]) if (x[open_col] > x[close_col]) else (x[high_col] - x[close_col]), axis = 1)
@@ -89,3 +90,11 @@ def check_macd_buy_sell(df, fast_period = 12, slow_period = 26, signal = 9, open
         buy_sells.append(buy_sell)
 
     return buy_sells
+
+def calculate_ema(df, days, smoothing = 2, open_col = 'open', close_col = 'close', low_col = 'low', high_col = 'high'):
+    prices = df[close_col]
+    ema = np.zeros(days - 1).tolist()
+    ema.append(sum(prices[:days]) / days)
+    for price in prices[days:]:
+        ema.append((price * (smoothing / (1 + days))) + ema[-1] * (1 - (smoothing / (1 + days))))
+    return ema
