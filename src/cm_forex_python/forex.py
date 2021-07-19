@@ -23,13 +23,38 @@ def calculate_max_decrement(df, step, open_col = 'open', close_col = 'close', lo
   max_increment = max_increment.shift(step * -1)
   return max_increment
 
-def check_for_order(df, step, take_profit_pips, stop_loss_pips, pip_size = 0.0001):
-  increment = calculate_max_increment(df, step)
-  decrement = calculate_max_decrement(df, step)
-  new_df = pd.DataFrame({'increment': increment, 'decrement': decrement})
-  tp = take_profit_pips * pip_size
-  sl = stop_loss_pips * pip_size
-  return new_df.apply(lambda x : 1 if(x.increment >= tp and x.decrement < sl) else (-1 if (x.decrement >= tp and x.increment < sl) else 0), axis = 1)
+
+def check_for_order(df, step, take_profit_pips, stop_loss_pips, pip_size=0.0001, open_col='open', close_col='close',
+                    low_col='low', high_col='high'):
+    orders = []
+    df_size = len(df.index)
+
+    for i in range(0, df_size):
+        order = 0
+        current_row = df.iloc[i]
+        close = current_row[close_col]
+
+        check_rows = df.iloc[min(i + 1, df_size):min(i + step, df_size)]
+        reached_sl_long = False
+        reached_sl_short = False
+        for check_row_index in range(0, len(check_rows.index)):
+            check_row = check_rows.iloc[check_row_index]
+            check_row_high_pips = (check_row[high_col] - close) / pip_size
+            check_row_low_pips = (close - check_row[low_col]) / pip_size
+
+            if (check_row_high_pips >= stop_loss_pips):
+                reached_sl_short = True
+            if (check_row_low_pips <= (stop_loss_pips * -1)):
+                reached_sl_long = True
+
+            if (not reached_sl_long and (order == 0)):
+                if (check_row_high_pips >= take_profit_pips):
+                    order = 1
+            if (not reached_sl_short and (order == 0)):
+                if (check_row_low_pips <= (take_profit_pips * -1)):
+                    order = -1
+        orders.append(order)
+    return orders
 
 
 def count_support_resistance(df, step, support_resistance=0, pip_size=0.0001, pip_threshold=5, compare_columns=None,
