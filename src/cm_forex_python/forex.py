@@ -123,3 +123,64 @@ def calculate_ema(df, days, smoothing = 2, open_col = 'open', close_col = 'close
     for price in prices[days:]:
         ema.append((price * (smoothing / (1 + days))) + ema[-1] * (1 - (smoothing / (1 + days))))
     return ema
+
+def calculate_difference_pips(value1, value2, pip_size = 0.0001):
+    p1 = value1 / pip_size
+    p2 = value2 / pip_size
+    return p1 - p2
+
+
+def strategy_tester(df):
+
+    new_df = pd.DataFrame(columns=['close', 'high', 'low', 'order', 'current_order_open', 'high_diff_pips', 'low_diff_pips', 'result', 'leverage', 'gain_loss', 'current_money'])
+
+    current_money = 100000
+    order_money = 1000
+    pip_size = 0.0001
+    leverage = 100
+    current_order_open = 0
+
+    for i in range(0, len(df.index)):
+        current_row = df.iloc[i]
+
+        result = gain_loss = high_diff_pips = low_diff_pips = 0
+
+        if (current_order_open != 0):
+            high_diff_pips = calculate_difference_pips(current_row['high'], current_order_open, pip_size)
+            low_diff_pips = calculate_difference_pips(current_row['low'], current_order_open, pip_size)
+            # close_diff_pips = calculate_difference_pips(current_order_open, current_row['close'])
+
+            close_position = False
+            if (high_diff_pips > 75):
+                close_position = True
+                result = high_diff_pips
+
+            if (low_diff_pips < -50):
+                close_position = True
+                result = low_diff_pips
+
+            if (close_position):
+                gain_loss = result * pip_size * leverage * order_money
+                current_money += gain_loss
+                current_order_open = 0
+
+        if (current_row['order'] == 1 and current_order_open == 0):
+            current_order_open = current_row['close']
+
+        new_df = new_df.append({
+            'close': current_row['close'],
+            'high': current_row['high'],
+            'low': current_row['low'],
+            'order': current_row['order'],
+            'current_order_open': current_order_open,
+            'high_diff_pips': high_diff_pips,
+            'low_diff_pips': low_diff_pips,
+            'result': result,
+            'leverage': leverage,
+            'gain_loss': gain_loss,
+            'current_money': current_money
+        }, ignore_index=True)
+
+    new_df['datetime'] = df.index
+    new_df = new_df.set_index('datetime')
+    return new_df
