@@ -130,14 +130,10 @@ def calculate_difference_pips(value1, value2, pip_size = 0.0001):
     return p1 - p2
 
 
-def strategy_tester(df):
+def strategy_tester(df, current_money = 100000, order_money = 1000, pip_size = 0.0001, leverage = 100):
 
     new_df = pd.DataFrame(columns=['close', 'high', 'low', 'order', 'current_order_open', 'high_diff_pips', 'low_diff_pips', 'result', 'leverage', 'gain_loss', 'current_money'])
 
-    current_money = 100000
-    order_money = 1000
-    pip_size = 0.0001
-    leverage = 100
     current_order_open = 0
 
     for i in range(0, len(df.index)):
