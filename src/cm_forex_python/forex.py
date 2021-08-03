@@ -130,11 +130,11 @@ def calculate_difference_pips(value1, value2, pip_size = 0.0001):
     return p1 - p2
 
 
-def strategy_tester(df, current_money = 100000, order_money = 1000, pip_size = 0.0001, leverage = 100):
+def strategy_tester(df, take_profit_pips = 75, stop_loss_pips = 50, current_money = 100000, order_money = 1000, pip_size = 0.0001, leverage = 100):
 
-    new_df = pd.DataFrame(columns=['close', 'high', 'low', 'order', 'current_order_open', 'high_diff_pips', 'low_diff_pips', 'result', 'leverage', 'gain_loss', 'current_money'])
+    new_df = pd.DataFrame(columns=['close', 'high', 'low', 'order', 'current_order_open', 'current_order_direction', 'high_diff_pips', 'low_diff_pips', 'result', 'leverage', 'gain_loss', 'current_money'])
 
-    current_order_open = 0
+    current_order_open = current_order_direction = 0
 
     for i in range(0, len(df.index)):
         current_row = df.iloc[i]
@@ -147,11 +147,11 @@ def strategy_tester(df, current_money = 100000, order_money = 1000, pip_size = 0
             # close_diff_pips = calculate_difference_pips(current_order_open, current_row['close'])
 
             close_position = False
-            if (high_diff_pips > 75):
+            if (high_diff_pips > take_profit_pips):
                 close_position = True
                 result = high_diff_pips
 
-            if (low_diff_pips < -50):
+            if (low_diff_pips < (stop_loss_pips * -1)):
                 close_position = True
                 result = low_diff_pips
 
@@ -159,9 +159,15 @@ def strategy_tester(df, current_money = 100000, order_money = 1000, pip_size = 0
                 gain_loss = result * pip_size * leverage * order_money
                 current_money += gain_loss
                 current_order_open = 0
+                current_order_direction = 0
 
         if (current_row['order'] == 1 and current_order_open == 0):
             current_order_open = current_row['close']
+            current_order_direction = 1
+
+        if (current_row['order'] == -1 and current_order_open == 0):
+            current_order_open = current_row['close']
+            current_order_direction = -1
 
         new_df = new_df.append({
             'close': current_row['close'],
@@ -169,6 +175,7 @@ def strategy_tester(df, current_money = 100000, order_money = 1000, pip_size = 0
             'low': current_row['low'],
             'order': current_row['order'],
             'current_order_open': current_order_open,
+            'current_order_direction': current_order_direction,
             'high_diff_pips': high_diff_pips,
             'low_diff_pips': low_diff_pips,
             'result': result,
